@@ -1,0 +1,20 @@
+{
+  "name": "nemesis-voice",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Voice-to-voice color/symbol repeater for Warcraft Midnight 12.1 (Nemesis Delve / Asterek).",
+  "scripts": {
+    "test": "node tests/timingPlanner.test.js",
+    "serve": "python -m http.server 43219"
+  },
+  "keywords": [
+    "warcraft",
+    "speech-recognition",
+    "web-speech",
+    "tts",
+    "mobile",
+    "raid-markers"
+  ],
+  "license": "MIT"
+}
