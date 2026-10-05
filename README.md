@@ -2,7 +2,7 @@
 
 A voice-to-voice color/symbol repeater for Warcraft Midnight 12.1 (Nemesis Delve / Asterek) that records Robby's spoken sequence and replays it back with the same timing between items.
 
-Live: https://rcackerley.github.io/nemesis-voice/
+Live: https://nemesis-voice.netlify.app/ (GitHub Pages at https://rcackerley.github.io/nemesis-voice/ once Pages is enabled in repo Settings → Pages → Source: GitHub Actions)
 
 - One-screen, touch-first UI
 - Web Speech API for mic input (when available)
