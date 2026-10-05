@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Nemesis Voice Repeater</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f1115;
+        --panel: #171922;
+        --text: #e6e6e6;
+        --muted: #9aa0aa;
+        --accent: #4f7cff;
+        --danger: #ff5d5d;
+        --success: #2ecc71;
+        --chip: #232637;
+        --chip-active: #344056;
+        --chip-border: #2c3144;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 16px env(safe-area-inset-right) 24px env(safe-area-inset-left);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      header h1 {
+        margin: 8px 0 0;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+      header p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid #1f2233;
+        border-radius: 14px;
+        padding: 14px;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .controls .full {
+        grid-column: 1 / -1;
+      }
+      button {
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+        height: 56px;
+        border-radius: 14px;
+        border: 1px solid #2a2f44;
+        background: #21263a;
+        color: var(--text);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      button.primary {
+        background: linear-gradient(180deg, #557cff, #3a63ff);
+        border-color: #364fb4;
+        color: white;
+      }
+      button.warning {
+        background: linear-gradient(180deg, #ff6a6a, #ff4747);
+        border-color: #b43a3a;
+        color: white;
+      }
+      button.secondary {
+        background: #1e2233;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .segmented button {
+        height: 44px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .segmented button.active {
+        background: var(--accent);
+        color: white;
+        border-color: #2e47aa;
+      }
+      .options {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .options label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #151929;
+        border: 1px solid #262b3f;
+        padding: 8px 10px;
+        border-radius: 12px;
+      }
+      .options input[type="number"] {
+        width: 72px;
+        height: 36px;
+        padding: 0 8px;
+        border-radius: 10px;
+        border: 1px solid #2a2f44;
+        background: #101420;
+        color: var(--text);
+        font-size: 16px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 44px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: var(--chip);
+        border: 1px solid var(--chip-border);
+        border-radius: 999px;
+        font-size: 16px;
+        user-select: none;
+      }
+      .chip[data-active="true"] {
+        background: var(--chip-active);
+        border-color: #46516d;
+      }
+      .chip button {
+        height: 28px;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 0 10px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .status {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .hidden {
+        display: none !important;
+      }
+      .error {
+        color: #ff9e9e;
+      }
+      .inline-edit {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 6px;
+        width: 100%;
+        margin-top: 8px;
+      }
+      .inline-edit input[type="text"] {
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid #2a2f44;
+        background: #101420;
+        color: var(--text);
+        font-size: 16px;
+        padding: 0 10px;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        border: 0;
+        padding: 0;
+        clip: rect(0 0 0 0);
+        overflow: hidden;
+      }
+      footer {
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        button:hover { filter: brightness(1.05); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="app">
+      <header>
+        <h1>Nemesis Voice Repeater</h1>
+        <p class="muted">Warcraft Midnight 12.1 — Nemesis Delve / Asterek</p>
+      </header>
+
+      <section class="panel">
+        <div class="controls">
+          <button id="startBtn" class="primary">Start Listening</button>
+          <button id="stopBtn" class="warning" disabled>Stop</button>
+          <button id="replayBtn" class="secondary full" disabled>Replay</button>
+        </div>
+        <div class="row" style="margin-top: 12px;">
+          <div class="status" id="status">Idle</div>
+          <div class="status">Count: <span id="countNow">0</span>/<span id="countTarget">5</span></div>
+        </div>
+        <div class="segmented" style="margin-top: 12px;">
+          <button class="segBtn active" data-value="5">5</button>
+          <button class="segBtn" data-value="6">6</button>
+          <button class="segBtn" data-value="7">7</button>
+          <button class="segBtn" data-value="custom">Custom</button>
+        </div>
+        <div class="options" style="margin-top: 10px;">
+          <label><input type="checkbox" id="autoReplay" checked /> Auto-replay at target</label>
+          <label><input type="checkbox" id="autoIncrement" checked /> Auto-increment target</label>
+          <label id="customWrap" class="hidden">Custom target <input type="number" id="customTarget" min="1" step="1" value="5" /></label>
+          <button id="simulateBtn" class="secondary">Simulate 5×5s</button>
+          <button id="clearBtn" class="secondary">Clear</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="status">Heard words (tap to correct)</div>
+        <div class="chips" id="chips"></div>
+        <div id="inlineEditor" class="inline-edit hidden" role="dialog" aria-modal="true" aria-labelledby="editLabel">
+          <span id="editLabel" class="sr-only">Edit word</span>
+          <input type="text" id="editInput" />
+          <button id="speakReplacementBtn">Speak</button>
+          <button id="saveEditBtn" class="primary">Save</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="status">Live partial transcript</div>
+        <div id="partial" class="muted" style="min-height: 20px;"></div>
+      </section>
+
+      <section class="panel">
+        <div id="errors" class="error"></div>
+      </section>
+
+      <footer>
+        Built for mobile — works best in Chrome/Edge on Android, Safari on iOS (with limitations).
+      </footer>
+    </div>
+
+    <script type="module">
+      import { computeDelays, normalizeWord } from "./timingPlanner.js";
+
+      // UI elements
+      const startBtn = document.getElementById('startBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const replayBtn = document.getElementById('replayBtn');
+      const statusEl = document.getElementById('status');
+      const partialEl = document.getElementById('partial');
+      const chipsEl = document.getElementById('chips');
+      const countNowEl = document.getElementById('countNow');
+      const countTargetEl = document.getElementById('countTarget');
+      const segButtons = Array.from(document.querySelectorAll('.segBtn'));
+      const autoReplayEl = document.getElementById('autoReplay');
+      const autoIncrementEl = document.getElementById('autoIncrement');
+      const customWrap = document.getElementById('customWrap');
+      const customTargetEl = document.getElementById('customTarget');
+      const simulateBtn = document.getElementById('simulateBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const errorsEl = document.getElementById('errors');
+
+      // Inline editor
+      const inlineEditor = document.getElementById('inlineEditor');
+      const editInput = document.getElementById('editInput');
+      const speakReplacementBtn = document.getElementById('speakReplacementBtn');
+      const saveEditBtn = document.getElementById('saveEditBtn');
+
+      // State
+      let entries = []; // { text, normalized, confidence, timeMs }
+      let targetCount = 5;
+      let listening = false;
+      let replaying = false;
+      let scheduled = [];
+      let activeIndex = -1;
+      let editIndex = -1;
+      let recognition = null;
+      let singleShotForEdit = false;
+      let lastRestartAt = 0;
+      let restartErrors = 0;
+
+      countTargetEl.textContent = String(targetCount);
+
+      // Environment checks
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const supportsRecognition = !!SpeechRecognition;
+      const supportsSynthesis = 'speechSynthesis' in window;
+
+      function setStatus(text) { statusEl.textContent = text; }
+      function showError(text) { errorsEl.textContent = text || ''; }
+      function clearError() { errorsEl.textContent = ''; }
+
+      function updateButtons() {
+        startBtn.disabled = listening || replaying || !supportsRecognition;
+        stopBtn.disabled = !listening && !replaying;
+        replayBtn.disabled = listening || entries.length === 0 || !supportsSynthesis;
+      }
+
+      function updateChips() {
+        chipsEl.innerHTML = '';
+        entries.forEach((e, i) => {
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          if (i === activeIndex) chip.dataset.active = 'true';
+          const text = document.createElement('span');
+          text.textContent = e.normalized || e.text;
+          chip.appendChild(text);
+          if (typeof e.confidence === 'number') {
+            const conf = document.createElement('span');
+            conf.className = 'muted';
+            conf.textContent = `(${Math.round(e.confidence * 100)}%)`;
+            chip.appendChild(conf);
+          }
+          const editBtn = document.createElement('button');
+          editBtn.textContent = 'Edit';
+          editBtn.addEventListener('click', () => openInlineEditor(i));
+          chip.appendChild(editBtn);
+          chipsEl.appendChild(chip);
+        });
+        countNowEl.textContent = String(entries.length);
+      }
+
+      function openInlineEditor(index) {
+        editIndex = index;
+        editInput.value = entries[index]?.normalized || entries[index]?.text || '';
+        inlineEditor.classList.remove('hidden');
+        editInput.focus();
+      }
+      function closeInlineEditor() {
+        editIndex = -1;
+        inlineEditor.classList.add('hidden');
+      }
+
+      function resetAll() {
+        cancelReplay();
+        entries = [];
+        activeIndex = -1;
+        updateChips();
+        setStatus('Idle');
+        partialEl.textContent = '';
+      }
+
+      function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+      function ensureRecognition(singleShot = false) {
+        if (!supportsRecognition) return null;
+        const rec = new SpeechRecognition();
+        rec.lang = 'en-US';
+        rec.interimResults = true;
+        // iOS Safari quirk: continuous is flaky; prefer single-utterance mode
+        rec.continuous = singleShot ? false : !isIOS;
+        rec.maxAlternatives = 1;
+        return rec;
+      }
+
+      function beginListening() {
+        if (!supportsRecognition) {
+          showError('Speech recognition is not supported in this browser. Use Chrome/Edge (Android) or Safari (iOS 16.4+).');
+          return;
+        }
+        clearError();
+        listening = true;
+        singleShotForEdit = false;
+        recognition = ensureRecognition(false);
+        wireRecognition(recognition);
+        try {
+          recognition.start(); // must be from user gesture
+          setStatus('Listening… Say colors or symbols one at a time.');
+        } catch (err) {
+          showError('Could not start microphone. Ensure mic permission is granted and try again.');
+          listening = false;
+        }
+        updateButtons();
+      }
+
+      function stopListening() {
+        listening = false;
+        if (recognition) {
+          try { recognition.onend = null; recognition.stop(); } catch {}
+          recognition = null;
+        }
+        setStatus('Stopped.');
+        updateButtons();
+      }
+
+      function wireRecognition(rec) {
+        rec.onresult = (event) => {
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const result = event.results[i];
+            const transcript = (result[0] && result[0].transcript || '').trim();
+            if (!result.isFinal) {
+              partialEl.textContent = transcript;
+              continue;
+            }
+            partialEl.textContent = '';
+            if (!transcript) continue;
+            const timeMs = performance.now();
+            const norm = normalizeWord(transcript);
+            const confidence = typeof result[0].confidence === 'number' ? result[0].confidence : undefined;
+            if (singleShotForEdit && editIndex >= 0) {
+              // Replace text at editIndex, keep timestamp unchanged to preserve cadence
+              const existing = entries[editIndex];
+              entries[editIndex] = {
+                ...existing,
+                text: transcript,
+                normalized: norm,
+                // keep existing.timeMs
+              };
+              singleShotForEdit = false;
+              closeInlineEditor();
+              setStatus(`Updated slot ${editIndex + 1} → ${norm}`);
+              updateChips();
+              // If we created a one-shot recognizer, stop it explicitly
+              try { rec.stop(); } catch {}
+              return;
+            }
+            entries.push({ text: transcript, normalized: norm, confidence, timeMs });
+            updateChips();
+            if (entries.length >= targetCount) {
+              setStatus(`Captured ${entries.length}.`);
+              if (autoReplayEl.checked) {
+                stopListening();
+                void replayNow();
+              } else {
+                updateButtons();
+              }
+            }
+          }
+        };
+        rec.onerror = (event) => {
+          // Common errors: no-speech, aborted, not-allowed
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            showError('Microphone permission denied. Enable mic for this site in browser settings.');
+            stopListening();
+            return;
+          }
+          // On iOS, recognition ends frequently; attempt restart while still listening
+          restartErrors++;
+        };
+        rec.onend = () => {
+          if (!listening) return;
+          const now = performance.now();
+          if (now - lastRestartAt < 200) return; // avoid tight loops
+          lastRestartAt = now;
+          try { rec.start(); } catch {
+            // Create a new instance if start() throws in ended state
+            recognition = ensureRecognition(false);
+            if (recognition) {
+              wireRecognition(recognition);
+              try { recognition.start(); } catch {}
+            }
+          }
+        };
+      }
+
+      async function replayNow() {
+        if (!supportsSynthesis) {
+          showError('Speech synthesis not supported in this browser.');
+          return;
+        }
+        if (!entries.length) return;
+        clearError();
+        replaying = true;
+        updateButtons();
+        setStatus('Replaying…');
+        const times = entries.map(e => e.timeMs);
+        const deltas = computeDelays(times, { clampMaxMs: 20000, clampMinMs: 150 });
+        // Cancel any prior schedule
+        cancelReplay();
+        activeIndex = -1;
+        updateChips();
+        let acc = 0;
+        scheduled = deltas.map((delay, i) => {
+          acc += (i === 0 ? 0 : delay);
+          return setTimeout(() => {
+            if (!replaying) return;
+            activeIndex = i;
+            updateChips();
+            const utter = new SpeechSynthesisUtterance(entries[i].normalized || entries[i].text);
+            // Use a slightly slower rate for clarity
+            utter.rate = 0.95;
+            try { window.speechSynthesis.speak(utter); } catch {}
+            if (i === entries.length - 1) {
+              // Finish
+              setTimeout(onReplayFinished, 50);
+            }
+          }, acc);
+        });
+      }
+
+      function onReplayFinished() {
+        replaying = false;
+        activeIndex = -1;
+        updateChips();
+        setStatus('Done. Ready.');
+        updateButtons();
+        // Auto-increment target 5→6→7 (then stay)
+        if (autoIncrementEl.checked) {
+          if (targetCount < 7) {
+            setTargetCount(targetCount + 1);
+          }
+        }
+      }
+
+      function cancelReplay() {
+        if (scheduled.length) {
+          for (const id of scheduled) clearTimeout(id);
+          scheduled = [];
+        }
+        try { window.speechSynthesis.cancel(); } catch {}
+        replaying = false;
+      }
+
+      function setTargetCount(n) {
+        targetCount = clamp(Number(n) || 1, 1, 30);
+        countTargetEl.textContent = String(targetCount);
+        segButtons.forEach(b => {
+          const v = b.dataset.value;
+          b.classList.toggle('active', (v !== 'custom' && Number(v) === targetCount) || (v === 'custom' && (targetCount !== 5 && targetCount !== 6 && targetCount !== 7)));
+        });
+        customWrap.classList.toggle('hidden', targetCount === 5 || targetCount === 6 || targetCount === 7);
+        if (!customWrap.classList.contains('hidden')) {
+          customTargetEl.value = String(targetCount);
+        }
+      }
+
+      // UI events
+      startBtn.addEventListener('click', () => {
+        beginListening(); // user gesture initiates mic
+      });
+      stopBtn.addEventListener('click', () => {
+        if (replaying) {
+          cancelReplay();
+          setStatus('Replay stopped.');
+        }
+        stopListening();
+      });
+      replayBtn.addEventListener('click', () => {
+        stopListening();
+        void replayNow();
+      });
+      clearBtn.addEventListener('click', () => {
+        stopListening();
+        resetAll();
+      });
+      simulateBtn.addEventListener('click', () => {
+        stopListening();
+        const base = performance.now();
+        const words = ['blue', 'yellow', 'green', 'red', 'purple'];
+        entries = words.map((w, i) => ({
+          text: w,
+          normalized: normalizeWord(w),
+          confidence: 1,
+          timeMs: base + (i * 5000)
+        }));
+        updateChips();
+        setStatus('Simulated 5 items @ 5s gaps. Press Replay.');
+        updateButtons();
+        // Log schedule for verification
+        const deltas = computeDelays(entries.map(e => e.timeMs), { clampMaxMs: 20000, clampMinMs: 150 });
+        console.log('[Simulation] Computed delays (ms):', deltas);
+      });
+      segButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const v = btn.dataset.value;
+          if (v === 'custom') {
+            setTargetCount(Number(customTargetEl.value) || targetCount);
+          } else {
+            setTargetCount(Number(v));
+          }
+        });
+      });
+      customTargetEl.addEventListener('change', () => {
+        setTargetCount(Number(customTargetEl.value) || targetCount);
+      });
+
+      // Inline editor events
+      saveEditBtn.addEventListener('click', () => {
+        if (editIndex < 0) return closeInlineEditor();
+        const text = (editInput.value || '').trim();
+        if (!text) { closeInlineEditor(); return; }
+        const existing = entries[editIndex];
+        entries[editIndex] = {
+          ...existing,
+          text,
+          normalized: normalizeWord(text),
+        };
+        closeInlineEditor();
+        updateChips();
+      });
+      speakReplacementBtn.addEventListener('click', () => {
+        if (!supportsRecognition) {
+          showError('Speech recognition not supported here.');
+          return;
+        }
+        if (editIndex < 0) return;
+        // Single-shot recognition for replacement
+        const rec = ensureRecognition(true);
+        if (!rec) return;
+        singleShotForEdit = true;
+        wireRecognition(rec);
+        try {
+          rec.start();
+          setStatus('Listening for replacement…');
+        } catch {}
+      });
+
+      // Initial UI state
+      updateButtons();
+      updateChips();
+      if (!supportsRecognition) {
+        showError('Browser lacks Web Speech recognition. Use Chrome/Edge (Android) or Safari (iOS 16.4+).');
+      }
+      if (!supportsSynthesis) {
+        showError((errorsEl.textContent ? errorsEl.textContent + ' ' : '') + 'Speech synthesis unavailable.');
+      }
+    </script>
+  </body>
+</html>
